@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 df = pd.read_excel("C:/Users/pkitt/OneDrive/Desktop/Family Based Oil blend - Copy.xlsx")
 df.isnull().sum()
 df.head(10)
