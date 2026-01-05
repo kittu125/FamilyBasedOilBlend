@@ -1,13 +1,3 @@
-from huggingface_hub import HfApi
-
-api = HfApi()
-
-# Delete a model repo
-api.delete_repo(
-    repo_id="kittu125/FamilyBasedSheet",  # your repo name
-    repo_type="model"                         # or "space", "dataset"
-)
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,25 +45,6 @@ model = RandomForestClassifier(n_estimators=300, random_state=42)
 model.fit(X, y_encoded)
 
 model.predict([[1,0,0,0,2,3]])
-from huggingface_hub import login
-
-from huggingface_hub import create_repo
-
-# Create a new repo under your account
-create_repo(
-    repo_id="kittu125/FamilyBasedSheet",  # include your username
-    repo_type="model",
-    private=False
-)
-from huggingface_hub import upload_file
-
-upload_file(
-    path_or_fileobj="C:/Users/pkitt/OneDrive/Desktop/Family Based Oil blend - Copy.xlsx",
-    path_in_repo="FamilyBasedSheet.ipynb",
-    repo_id="kittu125/FamilyBasedSheet",
-    repo_type="model",
-    
-)
 # Assertions (NOW VALID)
 assert isinstance(encoder_dict, dict)
 assert "FamilySize" in encoder_dict
@@ -86,54 +57,6 @@ joblib.dump(FEATURE_COLUMNS, "feature_columns.pkl")
 
 print("SUCCESS")
 print("Encoders:", encoder_dict.keys())
-
-from huggingface_hub import HfApi
-
-api = HfApi()
-repo_id = "kittu125/FamilyBasedSheet"
-
-api.upload_file(
-    path_or_fileobj="model.pkl",
-    path_in_repo="model.pkl",
-    repo_id=repo_id,
-    repo_type="model"
-)
-
-api.upload_file(
-    path_or_fileobj="encoders.pkl",
-    path_in_repo="encoders.pkl",
-    repo_id=repo_id,
-    repo_type="model"
-)
-
-api.upload_file(
-    path_or_fileobj="feature_columns.pkl",
-    path_in_repo="feature_columns.pkl",
-    repo_id=repo_id,
-    repo_type="model"
-)
-api.upload_file(
-    path_or_fileobj="target_encoder.pkl",
-    path_in_repo="target_encoder.pkl",
-    repo_id=repo_id,
-    repo_type="model"
-)
-
-from huggingface_hub import hf_hub_download
-import joblib
-
-model_path = hf_hub_download(repo_id, "model.pkl")
-encoders_path = hf_hub_download(repo_id, "encoders.pkl")
-features_path = hf_hub_download(repo_id, "feature_columns.pkl")
-target_path = hf_hub_download(repo_id, "target_encoder.pkl")
-
-model = joblib.load(model_path)
-encoders = joblib.load(encoders_path)
-FEATURE_COLUMNS = joblib.load(features_path)
-target_encoder = joblib.load(target_path)
-
-print(type(target_encoder))
-print(target_encoder.keys())
 
 print(type(encoders))        # dict
 print(encoders.keys())      # feature names
