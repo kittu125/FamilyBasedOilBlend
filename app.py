@@ -45,7 +45,12 @@ def predict_oil_blend(
         X_new = pd.DataFrame([row])
 
         pred_encoded = model.predict(X_new)[0]
-        pred_label = y_encoder.inverse_transform([pred_encoded])[0]
+        if value in encoders[col].classes_:
+            row[col] = encoders[col].transform([value])[0]
+        else:
+    # fallback to most common / safe value
+        row[col] = encoders[col].transform([encoders[col].classes_[0]])[0]
+
 
         return f"🫒 **Recommended Oil Blend:** {pred_label.title()}"
 
