@@ -37,6 +37,20 @@ def predict_oil_blend(
     cooking_style,
     usage
 ):
+            # ----------------------------
+        # SAFETY RULE OVERRIDE (CRITICAL)
+        # ----------------------------
+    if cardio_history == "strong":
+        return (
+                "🫒 **Recommended Oil Blend:** Heart-Safe Blend "
+                "(Doctor-Preferred)\n\n"
+                "⚠️ This recommendation prioritizes cardiac safety. "
+                "Please consult a healthcare professional for "
+                "personalized advice."
+            )
+
+        # ----------------------------
+
     try:
         input_data = {
             "FamilySize": family_size,
