@@ -48,7 +48,7 @@ def predict_oil_blend_ui(
         # -------------------------------------------------
         # CRITICAL SAFETY OVERRIDE
         # -------------------------------------------------
-        if cardio_history == "strong":
+        if cardio_history == "Strong":
             return (
                 "🫒 Recommended Oil Blend: Heart-Safe Blend\n\n"
                 "🔍 Why this recommendation?\n"
