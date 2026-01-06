@@ -115,33 +115,54 @@ def predict_oil_blend_ui(
 def build_explanation(inputs):
     reasons = []
 
+    # Heat-based reasoning
     if inputs["CookingTemp"] == "high":
         reasons.append(
             "High-temperature cooking → oils with higher smoke point preferred"
         )
+    elif inputs["CookingTemp"] == "medium":
+        reasons.append(
+            "Medium-temperature cooking → balanced heat-stable oils selected"
+        )
 
+    # Cooking style reasoning
     if inputs["CookingStyle"] == "heavyfry":
         reasons.append(
             "Frequent frying → oxidation-stable oil blend selected"
         )
+    elif inputs["CookingStyle"] == "mixed":
+        reasons.append(
+            "Mixed cooking styles → versatile all-purpose oil blend chosen"
+        )
 
+    # Usage reasoning
     if inputs["Usage"] == "high":
         reasons.append(
             "High daily usage → balanced fatty-acid profile recommended"
         )
-
-    if inputs["AgeMix"] in ["adult/elder", "multi-age"]:
+    elif inputs["Usage"] == "moderate":
         reasons.append(
-            "Elder or mixed-age family → heart-friendly fat composition favored"
+            "Moderate daily usage → everyday family-friendly oil preferred"
         )
 
-    # ✅ GUARANTEED EXPLANATION (UX SAFETY NET)
+    # Age-based reasoning
+    if inputs["AgeMix"] in ["adult/elder", "multi-age"]:
+        reasons.append(
+            "Presence of elders → heart-friendly fat composition prioritized"
+        )
+    elif inputs["AgeMix"] == "adult":
+        reasons.append(
+            "Adult family profile → long-term heart maintenance considered"
+        )
+
+    # Final safety net (rare now)
     if not reasons:
         reasons.append(
-            "Overall cooking habits and family profile best align with this oil blend"
+            "Overall family cooking pattern best aligns with this oil blend"
         )
 
     return reasons[:2]
+
 
 
 # =====================================================
