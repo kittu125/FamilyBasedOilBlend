@@ -51,8 +51,10 @@ def predict_oil_blend_ui(
         if cardio_history == "strong":
             return (
                 "🫒 Recommended Oil Blend: Heart-Safe Blend\n\n"
-                "⚠️ Cardiac history detected. "
-                "This recommendation prioritizes heart safety."
+                "🔍 Why this recommendation?\n"
+                "• Strong cardiac history detected\n"
+                "• Safety-first medical rule overrides ML prediction\n\n"
+                "⚠️ This recommendation prioritizes heart health."
             )
 
         # -------------------------------------------------
@@ -80,6 +82,19 @@ def predict_oil_blend_ui(
         }])[FEATURE_COLUMNS]
 
         pred = model.predict(X)[0]
+    inputs = {
+        "FamilySize": family_size,
+        "AgeMix": age_mix,
+        "CardioHistory": cardio_history,
+        "CookingTemp": cooking_temp,
+        "CookingStyle": cooking_style,
+        "Usage": usage
+        }
+
+        explanations = build_explanation(inputs)
+        explanation_text = "\n".join(
+        [f"• {reason}" for reason in explanations]
+        )
 
         # -------------------------------------------------
         # SAFE DECODE (NO classes_[0])
@@ -88,7 +103,12 @@ def predict_oil_blend_ui(
             pred, range(len(y_encoder.classes_)), "Model Output"
         )
 
-        return f"🫒 Recommended Oil Blend: {y_encoder.inverse_transform([pred])[0]}"
+        return (
+        f"🫒 Recommended Oil Blend: "
+        f"{y_encoder.inverse_transform([pred])[0]}\n\n"
+        f"🔍 Why this recommendation?\n"
+        f"{explanation_text}"
+)
 
     except ValueError as e:
         # User-visible validation error
