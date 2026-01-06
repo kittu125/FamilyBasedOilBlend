@@ -46,7 +46,7 @@ def predict_oil_blend_ui(
 ):
     try:
         # -------------------------------------------------
-        # CRITICAL SAFETY OVERRIDE (EXPLICIT BUSINESS RULE)
+        # CRITICAL SAFETY OVERRIDE
         # -------------------------------------------------
         if cardio_history == "strong":
             return (
@@ -58,64 +58,54 @@ def predict_oil_blend_ui(
             )
 
         # -------------------------------------------------
-        # STRICT ENCODING (NO FALLBACKS)
+        # STRICT ENCODING
         # -------------------------------------------------
         X = pd.DataFrame([{
-            "FamilySize": encode_feature(
-                family_size, X_encoders["FamilySize"], "FamilySize"
-            ),
-            "AgeMix": encode_feature(
-                age_mix, X_encoders["AgeMix"], "AgeMix"
-            ),
-            "CardioHistory": encode_feature(
-                cardio_history, X_encoders["CardioHistory"], "CardioHistory"
-            ),
-            "CookingTemp": encode_feature(
-                cooking_temp, X_encoders["CookingTemp"], "CookingTemp"
-            ),
-            "CookingStyle": encode_feature(
-                cooking_style, X_encoders["CookingStyle"], "CookingStyle"
-            ),
-            "Usage": encode_feature(
-                usage, X_encoders["Usage"], "Usage"
-            ),
+            "FamilySize": encode_feature(family_size, X_encoders["FamilySize"], "FamilySize"),
+            "AgeMix": encode_feature(age_mix, X_encoders["AgeMix"], "AgeMix"),
+            "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
+            "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
+            "CookingStyle": encode_feature(cooking_style, X_encoders["CookingStyle"], "CookingStyle"),
+            "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
+        # -------------------------------------------------
+        # MODEL PREDICTION
+        # -------------------------------------------------
         pred = model.predict(X)[0]
-    inputs = {
-        "FamilySize": family_size,
-        "AgeMix": age_mix,
-        "CardioHistory": cardio_history,
-        "CookingTemp": cooking_temp,
-        "CookingStyle": cooking_style,
-        "Usage": usage
-        }
 
-        explanations = build_explanation(inputs)
-        explanation_text = "\n".join(
-        [f"• {reason}" for reason in explanations]
-        )
-
-        # -------------------------------------------------
-        # SAFE DECODE (NO classes_[0])
-        # -------------------------------------------------
         validate_input(
             pred, range(len(y_encoder.classes_)), "Model Output"
         )
 
+        # -------------------------------------------------
+        # EXPLAINABILITY
+        # -------------------------------------------------
+        inputs = {
+            "FamilySize": family_size,
+            "AgeMix": age_mix,
+            "CardioHistory": cardio_history,
+            "CookingTemp": cooking_temp,
+            "CookingStyle": cooking_style,
+            "Usage": usage
+        }
+
+        explanations = build_explanation(inputs)
+        explanation_text = "\n".join(
+            [f"• {reason}" for reason in explanations]
+        )
+
         return (
-        f"🫒 Recommended Oil Blend: "
-        f"{y_encoder.inverse_transform([pred])[0]}\n\n"
-        f"🔍 Why this recommendation?\n"
-        f"{explanation_text}"
-)
+            f"🫒 Recommended Oil Blend: "
+            f"{y_encoder.inverse_transform([pred])[0]}\n\n"
+            f"🔍 Why this recommendation?\n"
+            f"{explanation_text}"
+        )
 
     except ValueError as e:
-        # User-visible validation error
         return str(e)
 
     except Exception as e:
-        # User-visible system error
         return f"🚨 System error: {str(e)}"
 
 # =====================================================
