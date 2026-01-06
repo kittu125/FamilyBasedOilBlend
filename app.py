@@ -1,6 +1,7 @@
 import gradio as gr
 import pandas as pd
 import joblib
+import numpy as np
 
 # ----------------------------
 # Load trained artifacts
@@ -12,10 +13,12 @@ FEATURE_COLUMNS = joblib.load("feature_columns.pkl")
 
 # ----------------------------
 # Normalize encoder classes
-# (CRITICAL FIX: UI == API parity)
+# (must stay NumPy array!)
 # ----------------------------
 for col, le in encoders.items():
-    le.classes_ = [str(c).lower().strip() for c in le.classes_]
+    le.classes_ = np.array(
+        [str(c).lower().strip() for c in le.classes_]
+    )
 
 # ----------------------------
 # Helper: normalize text
@@ -24,7 +27,7 @@ def normalize(x):
     return str(x).lower().strip()
 
 # ----------------------------
-# Prediction function (UI)
+# Prediction function
 # ----------------------------
 def predict_oil_blend(
     family_size,
@@ -51,7 +54,7 @@ def predict_oil_blend(
             if value in encoders[col].classes_:
                 row[col] = encoders[col].transform([value])[0]
             else:
-                # safety fallback (should rarely trigger now)
+                # safety fallback (should rarely happen now)
                 row[col] = encoders[col].transform(
                     [encoders[col].classes_[0]]
                 )[0]
@@ -73,27 +76,27 @@ iface = gr.Interface(
     fn=predict_oil_blend,
     inputs=[
         gr.Dropdown(
-            choices=encoders["FamilySize"].classes_,
+            choices=encoders["FamilySize"].classes_.tolist(),
             label="Family Size"
         ),
         gr.Dropdown(
-            choices=encoders["AgeMix"].classes_,
+            choices=encoders["AgeMix"].classes_.tolist(),
             label="Age Mix"
         ),
         gr.Dropdown(
-            choices=encoders["CardioHistory"].classes_,
+            choices=encoders["CardioHistory"].classes_.tolist(),
             label="Cardio History"
         ),
         gr.Dropdown(
-            choices=encoders["CookingTemp"].classes_,
+            choices=encoders["CookingTemp"].classes_.tolist(),
             label="Cooking Temp"
         ),
         gr.Dropdown(
-            choices=encoders["CookingStyle"].classes_,
+            choices=encoders["CookingStyle"].classes_.tolist(),
             label="Cooking Style"
         ),
         gr.Dropdown(
-            choices=encoders["Usage"].classes_,
+            choices=encoders["Usage"].classes_.tolist(),
             label="Usage"
         ),
     ],
