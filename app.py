@@ -116,41 +116,41 @@ def build_explanation(inputs):
     reasons = []
 
     # Heat-based reasoning
-    if inputs["CookingTemp"] == "high":
+    if inputs["CookingTemp"] == "High":
         reasons.append(
             "High-temperature cooking → oils with higher smoke point preferred"
         )
-    elif inputs["CookingTemp"] == "medium":
+    elif inputs["CookingTemp"] == "Medium":
         reasons.append(
             "Medium-temperature cooking → balanced heat-stable oils selected"
         )
 
     # Cooking style reasoning
-    if inputs["CookingStyle"] == "heavyfry":
+    if inputs["CookingStyle"] == "HeavyFry":
         reasons.append(
             "Frequent frying → oxidation-stable oil blend selected"
         )
-    elif inputs["CookingStyle"] == "mixed":
+    elif inputs["CookingStyle"] == "Mixed":
         reasons.append(
             "Mixed cooking styles → versatile all-purpose oil blend chosen"
         )
 
     # Usage reasoning
-    if inputs["Usage"] == "high":
+    if inputs["Usage"] == "High":
         reasons.append(
             "High daily usage → balanced fatty-acid profile recommended"
         )
-    elif inputs["Usage"] == "moderate":
+    elif inputs["Usage"] == "Moderate":
         reasons.append(
             "Moderate daily usage → everyday family-friendly oil preferred"
         )
 
     # Age-based reasoning
-    if inputs["AgeMix"] in ["adult/elder", "multi-age"]:
+    if inputs["AgeMix"] in ["Adult/Elder", "multi-age"]:
         reasons.append(
             "Presence of elders → heart-friendly fat composition prioritized"
         )
-    elif inputs["AgeMix"] == "adult":
+    elif inputs["AgeMix"] == "Adult":
         reasons.append(
             "Adult family profile → long-term heart maintenance considered"
         )
