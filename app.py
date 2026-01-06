@@ -99,6 +99,37 @@ def predict_oil_blend_ui(
         return f"🚨 System error: {str(e)}"
 
 # =====================================================
+# EXPLAINABILITY HELPER (RULE-BASED, HUMAN READABLE)
+# =====================================================
+
+def build_explanation(inputs):
+    reasons = []
+
+    if inputs["CookingTemp"] == "high":
+        reasons.append(
+            "High-temperature cooking → oils with higher smoke point preferred"
+        )
+
+    if inputs["CookingStyle"] == "heavyfry":
+        reasons.append(
+            "Frequent frying → oxidation-stable oil blend selected"
+        )
+
+    if inputs["Usage"] == "high":
+        reasons.append(
+            "High daily usage → balanced fatty-acid profile recommended"
+        )
+
+    if inputs["AgeMix"] in ["adult/elder", "multi-age"]:
+        reasons.append(
+            "Elder or mixed-age family → heart-friendly fat composition favored"
+        )
+
+    # Limit to 2 reasons (UX clarity)
+    return reasons[:2]
+
+
+# =====================================================
 # GRADIO UI
 # =====================================================
 
