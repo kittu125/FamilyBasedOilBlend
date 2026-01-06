@@ -26,37 +26,40 @@ def predict_oil_blend(
     cooking_temp,
     cooking_style,
     usage
-):
+):  
     try:
-        input_data = {
-            "FamilySize": family_size,
-            "AgeMix": age_mix,
-            "CardioHistory": cardio_history,
-            "CookingTemp": cooking_temp,
-            "CookingStyle": cooking_style,
-            "Usage": usage
+    input_data = {
+        "FamilySize": family_size,
+        "AgeMix": age_mix,
+        "CardioHistory": cardio_history,
+        "CookingTemp": cooking_temp,
+        "CookingStyle": cooking_style,
+        "Usage": usage
         }
 
         row = {}
         for col in FEATURE_COLUMNS:
             value = normalize(input_data[col])
+
+        if value in encoders[col].classes_:
             row[col] = encoders[col].transform([value])[0]
+        else:
+            # fallback for unseen labels like "any"
+            row[col] = encoders[col].transform(
+                [encoders[col].classes_[0]]
+            )[0]
 
         X_new = pd.DataFrame([row])
 
         pred_encoded = model.predict(X_new)[0]
-        if value in encoders[col].classes_:
-            row[col] = encoders[col].transform([value])[0]
-        else:
-    # fallback to most common / safe value
-        row[col] = encoders[col].transform([encoders[col].classes_[0]])[0]
-
+        pred_label = y_encoder.inverse_transform([pred_encoded])[0]
 
         return f"🫒 **Recommended Oil Blend:** {pred_label.title()}"
 
     except Exception as e:
-        # This prevents silent failures in Gradio
         return f"❌ Error: {str(e)}"
+
+
 
 # ----------------------------
 # Gradio UI
