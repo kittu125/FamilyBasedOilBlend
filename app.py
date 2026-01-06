@@ -135,7 +135,12 @@ def build_explanation(inputs):
             "Elder or mixed-age family → heart-friendly fat composition favored"
         )
 
-    # Limit to 2 reasons (UX clarity)
+    # ✅ GUARANTEED EXPLANATION (UX SAFETY NET)
+    if not reasons:
+        reasons.append(
+            "Overall cooking habits and family profile best align with this oil blend"
+        )
+
     return reasons[:2]
 
 
