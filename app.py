@@ -37,17 +37,18 @@ def predict_oil_blend(
         "Usage": usage
         }
 
+        
         row = {}
         for col in FEATURE_COLUMNS:
             value = normalize(input_data[col])
 
-        if value in encoders[col].classes_:
-            row[col] = encoders[col].transform([value])[0]
-        else:
+            if value in encoders[col].classes_:
+               row[col] = encoders[col].transform([value])[0]
+            else:
             # fallback for unseen labels like "any"
-            row[col] = encoders[col].transform(
-                [encoders[col].classes_[0]]
-            )[0]
+                row[col] = encoders[col].transform(
+                   [encoders[col].classes_[0]]
+                )[0]
 
         X_new = pd.DataFrame([row])
 
