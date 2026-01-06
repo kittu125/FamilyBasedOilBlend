@@ -1,35 +1,4 @@
-import gradio as gr
-import pandas as pd
-import joblib
-import numpy as np
-
-# ----------------------------
-# Load trained artifacts
-# ----------------------------
-model = joblib.load("model.pkl")
-encoders = joblib.load("encoders.pkl")
-y_encoder = joblib.load("target_encoder.pkl")
-FEATURE_COLUMNS = joblib.load("feature_columns.pkl")
-
-# ----------------------------
-# Normalize encoder classes
-# (must stay NumPy array!)
-# ----------------------------
-for col, le in encoders.items():
-    le.classes_ = np.array(
-        [str(c).lower().strip() for c in le.classes_]
-    )
-
-# ----------------------------
-# Helper: normalize text
-# ----------------------------
-def normalize(x):
-    return str(x).lower().strip()
-
-# ----------------------------
-# Prediction function
-# ----------------------------
-def predict_oil_blend(
+def predict_oil_blend_ui(
     family_size,
     age_mix,
     cardio_history,
@@ -37,86 +6,41 @@ def predict_oil_blend(
     cooking_style,
     usage
 ):
-            # ----------------------------
-        # SAFETY RULE OVERRIDE (CRITICAL)
+    try:
         # ----------------------------
-    if cardio_history == "strong":
-        return (
-                "🫒 **Recommended Oil Blend:** Heart-Safe Blend "
-                "(Doctor-Preferred)\n\n"
-                "⚠️ This recommendation prioritizes cardiac safety. "
-                "Please consult a healthcare professional for "
-                "personalized advice."
+        # CRITICAL SAFETY OVERRIDE
+        # ----------------------------
+        if cardio_history == "strong":
+            return (
+                "🫒 Recommended Oil Blend: Heart-Safe Blend\n\n"
+                "⚠️ Cardiac history detected. "
+                "This recommendation prioritizes heart safety."
             )
 
         # ----------------------------
+        # STRICT ENCODING (NO FALLBACK)
+        # ----------------------------
+        X = pd.DataFrame([{
+            "FamilySize": encode_feature(family_size, X_encoders["FamilySize"], "FamilySize"),
+            "AgeMix": encode_feature(age_mix, X_encoders["AgeMix"], "AgeMix"),
+            "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
+            "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
+            "CookingStyle": encode_feature(cooking_style, X_encoders["CookingStyle"], "CookingStyle"),
+            "Usage": encode_feature(usage, X_encoders["Usage"], "Usage")
+        }])[FEATURE_COLUMNS]
 
-    try:
-        input_data = {
-            "FamilySize": family_size,
-            "AgeMix": age_mix,
-            "CardioHistory": cardio_history,
-            "CookingTemp": cooking_temp,
-            "CookingStyle": cooking_style,
-            "Usage": usage
-        }
+        pred = model.predict(X)[0]
 
-        row = {}
-        for col in FEATURE_COLUMNS:
-            value = normalize(input_data[col])
+        # ----------------------------
+        # SAFE DECODE
+        # ----------------------------
+        validate_input(pred, range(len(y_encoder.classes_)), "Model Output")
+        return f"🫒 Recommended Oil Blend: {y_encoder.inverse_transform([pred])[0]}"
 
-            if value in encoders[col].classes_:
-                row[col] = encoders[col].transform([value])[0]
-            else:
-                # safety fallback (should rarely happen now)
-                row[col] = encoders[col].transform(
-                    [encoders[col].classes_[0]]
-                )[0]
-
-        X_new = pd.DataFrame([row])
-
-        pred_encoded = model.predict(X_new)[0]
-        pred_label = y_encoder.inverse_transform([pred_encoded])[0]
-
-        return f"🫒 **Recommended Oil Blend:** {pred_label.title()}"
+    except ValueError as e:
+        # 👇 USER SEES EXACT ERROR
+        return str(e)
 
     except Exception as e:
-        return f"❌ Error: {str(e)}"
-
-# ----------------------------
-# Gradio UI
-# ----------------------------
-iface = gr.Interface(
-    fn=predict_oil_blend,
-    inputs=[
-        gr.Dropdown(
-            choices=encoders["FamilySize"].classes_.tolist(),
-            label="Family Size"
-        ),
-        gr.Dropdown(
-            choices=encoders["AgeMix"].classes_.tolist(),
-            label="Age Mix"
-        ),
-        gr.Dropdown(
-            choices=encoders["CardioHistory"].classes_.tolist(),
-            label="Cardio History"
-        ),
-        gr.Dropdown(
-            choices=encoders["CookingTemp"].classes_.tolist(),
-            label="Cooking Temp"
-        ),
-        gr.Dropdown(
-            choices=encoders["CookingStyle"].classes_.tolist(),
-            label="Cooking Style"
-        ),
-        gr.Dropdown(
-            choices=encoders["Usage"].classes_.tolist(),
-            label="Usage"
-        ),
-    ],
-    outputs=gr.Markdown(label="Oil Recommendation"),
-    title="🛢️ Oil Clinic – Family Based Recommendation",
-    description="This recommendation is for general cooking guidance only and not a medical substitute"
-)
-
-iface.launch()
+        # 👇 SYSTEM ERROR — STILL VISIBLE
+        return f"🚨 System error: {str(e)}"
