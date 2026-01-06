@@ -116,7 +116,7 @@ iface = gr.Interface(
     ],
     outputs=gr.Markdown(label="Oil Recommendation"),
     title="🛢️ Oil Clinic – Family Based Recommendation",
-    description="Select family and cooking preferences to get a personalized oil blend recommendation."
+    description="This recommendation is for general cooking guidance only and not a medical substitute"
 )
 
 iface.launch()
