@@ -6,7 +6,7 @@ def predict_oil_blend_ui(
     cooking_style,
     usage
 ):
-     ----------------------------
+#--------------------------------
 # Load trained artifacts
 # ----------------------------
 model = joblib.load("model.pkl")
