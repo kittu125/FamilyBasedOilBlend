@@ -28,7 +28,7 @@ def predict_oil_blend(
     usage
 ):  
     try:
-    input_data = {
+      input_data = {
         "FamilySize": family_size,
         "AgeMix": age_mix,
         "CardioHistory": cardio_history,
