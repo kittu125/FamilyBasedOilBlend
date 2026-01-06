@@ -11,6 +11,13 @@ y_encoder = joblib.load("target_encoder.pkl")
 FEATURE_COLUMNS = joblib.load("feature_columns.pkl")
 
 # ----------------------------
+# Normalize encoder classes
+# (CRITICAL FIX: UI == API parity)
+# ----------------------------
+for col, le in encoders.items():
+    le.classes_ = [str(c).lower().strip() for c in le.classes_]
+
+# ----------------------------
 # Helper: normalize text
 # ----------------------------
 def normalize(x):
@@ -44,7 +51,7 @@ def predict_oil_blend(
             if value in encoders[col].classes_:
                 row[col] = encoders[col].transform([value])[0]
             else:
-                # fallback for unseen labels like "any"
+                # safety fallback (should rarely trigger now)
                 row[col] = encoders[col].transform(
                     [encoders[col].classes_[0]]
                 )[0]
@@ -66,27 +73,27 @@ iface = gr.Interface(
     fn=predict_oil_blend,
     inputs=[
         gr.Dropdown(
-            choices=encoders["FamilySize"].classes_.tolist(),
+            choices=encoders["FamilySize"].classes_,
             label="Family Size"
         ),
         gr.Dropdown(
-            choices=encoders["AgeMix"].classes_.tolist(),
+            choices=encoders["AgeMix"].classes_,
             label="Age Mix"
         ),
         gr.Dropdown(
-            choices=encoders["CardioHistory"].classes_.tolist(),
+            choices=encoders["CardioHistory"].classes_,
             label="Cardio History"
         ),
         gr.Dropdown(
-            choices=encoders["CookingTemp"].classes_.tolist(),
+            choices=encoders["CookingTemp"].classes_,
             label="Cooking Temp"
         ),
         gr.Dropdown(
-            choices=encoders["CookingStyle"].classes_.tolist(),
+            choices=encoders["CookingStyle"].classes_,
             label="Cooking Style"
         ),
         gr.Dropdown(
-            choices=encoders["Usage"].classes_.tolist(),
+            choices=encoders["Usage"].classes_,
             label="Usage"
         ),
     ],
