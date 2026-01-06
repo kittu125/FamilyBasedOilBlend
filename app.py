@@ -6,6 +6,15 @@ def predict_oil_blend_ui(
     cooking_style,
     usage
 ):
+     ----------------------------
+# Load trained artifacts
+# ----------------------------
+model = joblib.load("model.pkl")
+encoders = joblib.load("encoders.pkl")
+y_encoder = joblib.load("target_encoder.pkl")
+FEATURE_COLUMNS = joblib.load("feature_columns.pkl")
+
+# ----------------------------
     try:
         # ----------------------------
         # CRITICAL SAFETY OVERRIDE
