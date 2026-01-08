@@ -2,7 +2,6 @@ import os
 import joblib
 import pandas as pd
 import gradio as gr
-from schema import validate_input
 
 # =====================================================
 # LOAD TRAINED ARTIFACTS (TOP LEVEL — ONCE)
