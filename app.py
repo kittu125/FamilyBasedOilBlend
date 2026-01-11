@@ -2,15 +2,7 @@ import os
 import joblib
 import pandas as pd
 import gradio as gr
-from schema import validate_input
-# =====================================================
-# LOAD TRAINED ARTIFACTS (TOP LEVEL — ONCE)
-# =====================================================
 
-def safe_load(path, name):
-    if not os.path.exists(path):
-        raise RuntimeError(f"❌ Missing required file: {name} ({path})")
-    return joblib.load(path)
 
 model = safe_load("model.pkl", "Model")
 X_encoders = safe_load("encoders.pkl", "Encoders")
@@ -215,13 +207,4 @@ with gr.Blocks() as demo:
         outputs=output
     )
 
-# =====================================================
-# LAUNCH (MANDATORY FOR HF SPACES)
-# =====================================================
 
-if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        show_error=True  # ensures errors are visible to user
-    )
