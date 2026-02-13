@@ -7,7 +7,7 @@ class InputSchema:
     AgeMix: str
     CardioHistory: str
     CookingTemp: str
-    CookingStyle: str
+    BMI: str
     Usage: str
 
 
