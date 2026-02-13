@@ -41,7 +41,7 @@ def predict_oil_blend_ui(
     age_mix,
     cardio_history,
     cooking_temp,
-    cooking_style,
+    BMI,
     usage
 ):
     try:
@@ -65,7 +65,7 @@ def predict_oil_blend_ui(
             "AgeMix": encode_feature(age_mix, X_encoders["AgeMix"], "AgeMix"),
             "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
             "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
-            "CookingStyle": encode_feature(cooking_style, X_encoders["CookingStyle"], "CookingStyle"),
+            "BMI": encode_feature(cooking_style, X_encoders["BMI"], "BMI"),
             "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
@@ -86,7 +86,7 @@ def predict_oil_blend_ui(
             "AgeMix": age_mix,
             "CardioHistory": cardio_history,
             "CookingTemp": cooking_temp,
-            "CookingStyle": cooking_style,
+            "BMI": BMI,
             "Usage": usage
         }
 
@@ -126,13 +126,13 @@ def build_explanation(inputs):
         )
 
     # Cooking style reasoning
-    if inputs["CookingStyle"] == "HeavyFry":
+    if inputs["BMI"] == "High":
         reasons.append(
-            "Frequent frying → oxidation-stable oil blend selected"
+            "High NO"
         )
-    elif inputs["CookingStyle"] == "Mixed":
+    elif inputs["BMI"] == "Medium":
         reasons.append(
-            "Mixed cooking styles → versatile all-purpose oil blend chosen"
+            "Medium"
         )
 
     # Usage reasoning
@@ -188,9 +188,9 @@ with gr.Blocks() as demo:
         choices=list(X_encoders["CookingTemp"].classes_),
         label="Cooking Temperature"
     )
-    cooking_style = gr.Dropdown(
-        choices=list(X_encoders["CookingStyle"].classes_),
-        label="Cooking Style"
+    BMI = gr.Dropdown(
+        choices=list(X_encoders["BMI"].classes_),
+        label="BMI"
     )
     usage = gr.Dropdown(
         choices=list(X_encoders["Usage"].classes_),
@@ -209,7 +209,7 @@ with gr.Blocks() as demo:
             age_mix,
             cardio_history,
             cooking_temp,
-            cooking_style,
+            BMI,
             usage
         ],
         outputs=output
