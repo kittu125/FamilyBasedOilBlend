@@ -65,7 +65,7 @@ def predict_oil_blend_ui(
             "AgeMix": encode_feature(age_mix, X_encoders["AgeMix"], "AgeMix"),
             "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
             "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
-            "BMI": encode_feature(cooking_style, X_encoders["BMI"], "BMI"),
+            "BMI": encode_feature(BMI, X_encoders["BMI"], "BMI"),
             "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
@@ -125,7 +125,7 @@ def build_explanation(inputs):
             "Medium-temperature cooking → balanced heat-stable oils selected"
         )
 
-    # Cooking style reasoning
+    # BMI reasoning
     if inputs["BMI"] == "High":
         reasons.append(
             "High NO"
