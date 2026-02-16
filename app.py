@@ -204,7 +204,7 @@ with gr.Blocks() as demo:
         choices=list(X_encoders["BMI"].classes_),
         label="BMI"
     )
-    GutWellness = gr.Dropdown(
+    gut_wellness = gr.Dropdown(
         choices=list(X_encoders["GutWellness"].classes_),
         label="Gut Wellness"
     )
