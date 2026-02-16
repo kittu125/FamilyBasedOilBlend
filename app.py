@@ -67,7 +67,7 @@ def predict_oil_blend_ui(
             "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
             "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
             "BMI": encode_feature(BMI, X_encoders["BMI"], "BMI"),
-            "GutWellness": encode_feature(GutWellness, X_encoders["GutWellness"], "GutWellness"),
+            "GutWellness": encode_feature(gut_wellness, X_encoders["GutWellness"], "GutWellness"),
             "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
