@@ -142,7 +142,7 @@ def build_explanation(inputs):
         reasons.append(
             "Looks Having the needed food and requirements for maintanence of Gut"
         )
-    elif inputs["GutWellness"] == "Need Support":
+    elif inputs["GutWellness"] == "NeedSupport":
         reasons.append(
             "Need to Provide Gocomole Oil helps in stimulation & support for Bowl Movement& also stimulate required Gut Bacteria "
         )    
