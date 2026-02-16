@@ -42,6 +42,7 @@ def predict_oil_blend_ui(
     cardio_history,
     cooking_temp,
     BMI,
+    gut_wellness,
     usage
 ):
     try:
@@ -66,6 +67,7 @@ def predict_oil_blend_ui(
             "CardioHistory": encode_feature(cardio_history, X_encoders["CardioHistory"], "CardioHistory"),
             "CookingTemp": encode_feature(cooking_temp, X_encoders["CookingTemp"], "CookingTemp"),
             "BMI": encode_feature(BMI, X_encoders["BMI"], "BMI"),
+            "GutWellness": encode_feature(GutWellness, X_encoders["GutWellness"], "BMI"),
             "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
@@ -87,6 +89,7 @@ def predict_oil_blend_ui(
             "CardioHistory": cardio_history,
             "CookingTemp": cooking_temp,
             "BMI": BMI,
+            "GutWellness": gut_wellness,
             "Usage": usage
         }
 
@@ -128,12 +131,21 @@ def build_explanation(inputs):
     # BMI reasoning
     if inputs["BMI"] == "High":
         reasons.append(
-            "High NO"
+            "Stimulate the Production of Nitrix Oxide for shutting down SCoR2"
         )
     elif inputs["BMI"] == "Medium":
         reasons.append(
-            "Medium"
+            "Continue active Lifestyle like excerice and good sleep"
         )
+    # Gut_Wellness reasoning
+    if inputs["GutWellness"] == "Good":
+        reasons.append(
+            "Looks Having the needed food and requirements for maintanence of Gut"
+        )
+    elif inputs["BMI"] == "Need Support":
+        reasons.append(
+            "Need to Provide Gocomole Oil helps in stimulation & support for Bowl Movement& also stimulate required Gut Bacteria "
+        )    
 
     # Usage reasoning
     if inputs["Usage"] == "High":
@@ -192,6 +204,10 @@ with gr.Blocks() as demo:
         choices=list(X_encoders["BMI"].classes_),
         label="BMI"
     )
+    GutWellness = gr.Dropdown(
+        choices=list(X_encoders["GutWellness"].classes_),
+        label="GutWellness"
+    )
     usage = gr.Dropdown(
         choices=list(X_encoders["Usage"].classes_),
         label="Usage"
@@ -210,6 +226,7 @@ with gr.Blocks() as demo:
             cardio_history,
             cooking_temp,
             BMI,
+            Gut_Wellness,
             usage
         ],
         outputs=output
