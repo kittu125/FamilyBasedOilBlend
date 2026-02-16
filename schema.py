@@ -8,6 +8,7 @@ class InputSchema:
     CardioHistory: str
     CookingTemp: str
     BMI: str
+    GutWellness: str
     Usage: str
 
 
