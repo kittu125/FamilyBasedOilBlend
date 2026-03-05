@@ -1,4 +1,6 @@
+```python
 import os
+import glob
 import joblib
 import pandas as pd
 import gradio as gr
@@ -18,7 +20,29 @@ y_encoder = safe_load("target_encoder.pkl", "Target Encoder")
 FEATURE_COLUMNS = safe_load("feature_columns.pkl", "Feature Columns")
 
 # =====================================================
-# VALIDATION & ENCODING HELPERS (NO SILENT FAILURES)
+# LOAD RAG DOCUMENTS
+# =====================================================
+
+def load_rag_docs():
+    docs = {}
+    for file in glob.glob("rag_docs/*.txt"):
+        key = os.path.basename(file).replace(".txt", "").lower()
+        with open(file, "r", encoding="utf-8") as f:
+            docs[key] = f.read()
+    return docs
+
+RAG_DOCS = load_rag_docs()
+
+def get_rag_explanation(blend_name):
+    key = blend_name.lower().replace(" ", "_")
+
+    if key in RAG_DOCS:
+        return RAG_DOCS[key]
+
+    return "General cooking oil blend suitable for everyday cooking."
+
+# =====================================================
+# VALIDATION & ENCODING HELPERS
 # =====================================================
 
 def validate_input(value, allowed, field_name):
@@ -33,7 +57,66 @@ def encode_feature(value, encoder, field_name):
     return encoder.transform([value])[0]
 
 # =====================================================
-# PREDICTION FUNCTION (LOGIC ONLY)
+# EXPLAINABILITY HELPER (RULE-BASED)
+# =====================================================
+
+def build_explanation(inputs):
+    reasons = []
+
+    if inputs["CookingTemp"] == "High":
+        reasons.append(
+            "High-temperature cooking → oils with higher smoke points preferred"
+        )
+    elif inputs["CookingTemp"] == "Medium":
+        reasons.append(
+            "Medium-temperature cooking → balanced heat-stable oils selected"
+        )
+
+    if inputs["BMI"] == "High":
+        reasons.append(
+            "Higher BMI → balanced fatty acid oils recommended for everyday cooking"
+        )
+    elif inputs["BMI"] == "Medium":
+        reasons.append(
+            "Moderate BMI → maintaining balanced dietary fat intake is beneficial"
+        )
+
+    if inputs["GutWellness"] == "Good":
+        reasons.append(
+            "Healthy digestion → maintaining balanced cooking oils supports gut wellness"
+        )
+    elif inputs["GutWellness"] == "Need Support":
+        reasons.append(
+            "Digestive support needed → oils with natural bioactive compounds may help gut balance"
+        )
+
+    if inputs["Usage"] == "High":
+        reasons.append(
+            "Frequent oil usage → balanced fatty-acid profile recommended"
+        )
+    elif inputs["Usage"] == "Moderate":
+        reasons.append(
+            "Moderate oil usage → everyday family-friendly oil preferred"
+        )
+
+    if inputs["AgeMix"] in ["Adult/Elder", "multi-age"]:
+        reasons.append(
+            "Presence of elders → heart-conscious oil composition prioritized"
+        )
+    elif inputs["AgeMix"] == "Adult":
+        reasons.append(
+            "Adult family profile → long-term cooking stability considered"
+        )
+
+    if not reasons:
+        reasons.append(
+            "Overall family cooking pattern best aligns with this oil blend"
+        )
+
+    return reasons[:2]
+
+# =====================================================
+# PREDICTION FUNCTION
 # =====================================================
 
 def predict_oil_blend_ui(
@@ -46,21 +129,20 @@ def predict_oil_blend_ui(
     usage
 ):
     try:
-        # -------------------------------------------------
-        # CRITICAL SAFETY OVERRIDE
-        # -------------------------------------------------
+
+        # --------------------------------------------
+        # SAFETY OVERRIDE
+        # --------------------------------------------
         if cardio_history == "Strong":
             return (
                 "🫒 Recommended Oil Blend: Heart-Safe Blend\n\n"
-                "🔍 Why this recommendation?\n"
-                "• Strong cardiac history detected\n"
-                "• Safety-first medical rule overrides ML prediction\n\n"
-                "⚠️ This recommendation prioritizes heart health."
+                "⚠️ Strong cardiac history detected.\n"
+                "Safety-first medical rule overrides ML prediction."
             )
 
-        # -------------------------------------------------
-        # STRICT ENCODING
-        # -------------------------------------------------
+        # --------------------------------------------
+        # ENCODE INPUT FEATURES
+        # --------------------------------------------
         X = pd.DataFrame([{
             "FamilySize": encode_feature(family_size, X_encoders["FamilySize"], "FamilySize"),
             "AgeMix": encode_feature(age_mix, X_encoders["AgeMix"], "AgeMix"),
@@ -71,18 +153,19 @@ def predict_oil_blend_ui(
             "Usage": encode_feature(usage, X_encoders["Usage"], "Usage"),
         }])[FEATURE_COLUMNS]
 
-        # -------------------------------------------------
+        # --------------------------------------------
         # MODEL PREDICTION
-        # -------------------------------------------------
+        # --------------------------------------------
         pred = model.predict(X)[0]
 
-        validate_input(
-            pred, range(len(y_encoder.classes_)), "Model Output"
-        )
+        probs = model.predict_proba(X)[0]
+        confidence = round(max(probs) * 100, 1)
 
-        # -------------------------------------------------
-        # EXPLAINABILITY
-        # -------------------------------------------------
+        blend_name = y_encoder.inverse_transform([pred])[0]
+
+        # --------------------------------------------
+        # RULE-BASED EXPLANATION
+        # --------------------------------------------
         inputs = {
             "FamilySize": family_size,
             "AgeMix": age_mix,
@@ -94,15 +177,22 @@ def predict_oil_blend_ui(
         }
 
         explanations = build_explanation(inputs)
-        explanation_text = "\n".join(
-            [f"• {reason}" for reason in explanations]
-        )
+        explanation_text = "\n".join([f"• {r}" for r in explanations])
 
+        # --------------------------------------------
+        # RAG KNOWLEDGE
+        # --------------------------------------------
+        rag_text = get_rag_explanation(blend_name)
+
+        # --------------------------------------------
+        # FINAL RESPONSE
+        # --------------------------------------------
         return (
-            f"🫒 Recommended Oil Blend: "
-            f"{y_encoder.inverse_transform([pred])[0]}\n\n"
+            f"🫒 Recommended Oil Blend: {blend_name}\n\n"
+            f"📊 Confidence: {confidence}%\n\n"
             f"🔍 Why this recommendation?\n"
-            f"{explanation_text}"
+            f"{explanation_text}\n\n"
+            f"{rag_text}"
         )
 
     except ValueError as e:
@@ -110,72 +200,6 @@ def predict_oil_blend_ui(
 
     except Exception as e:
         return f"🚨 System error: {str(e)}"
-
-# =====================================================
-# EXPLAINABILITY HELPER (RULE-BASED, HUMAN READABLE)
-# =====================================================
-
-def build_explanation(inputs):
-    reasons = []
-
-    # Heat-based reasoning
-    if inputs["CookingTemp"] == "High":
-        reasons.append(
-            "High-temperature cooking → oils with higher smoke point preferred"
-        )
-    elif inputs["CookingTemp"] == "Medium":
-        reasons.append(
-            "Medium-temperature cooking → balanced heat-stable oils selected"
-        )
-
-    # BMI reasoning
-    if inputs["BMI"] == "High":
-        reasons.append(
-            "Stimulate the Production of Nitrix Oxide for shutting down SCoR2"
-        )
-    elif inputs["BMI"] == "Medium":
-        reasons.append(
-            "Continue active Lifestyle like excerice and good sleep"
-        )
-    # Gut_Wellness reasoning
-    if inputs["GutWellness"] == "Good":
-        reasons.append(
-            "Looks Having the needed food and requirements for maintanence of Gut"
-        )
-    elif inputs["GutWellness"] == "Need Support":
-        reasons.append(
-            "Need to Provide Gocomole Oil helps in stimulation & support for Bowl Movement& also stimulate required Gut Bacteria "
-        )    
-
-    # Usage reasoning
-    if inputs["Usage"] == "High":
-        reasons.append(
-            "High daily usage → balanced fatty-acid profile recommended"
-        )
-    elif inputs["Usage"] == "Moderate":
-        reasons.append(
-            "Moderate daily usage → everyday family-friendly oil preferred"
-        )
-
-    # Age-based reasoning
-    if inputs["AgeMix"] in ["Adult/Elder", "multi-age"]:
-        reasons.append(
-            "Presence of elders → heart-friendly fat composition prioritized"
-        )
-    elif inputs["AgeMix"] == "Adult":
-        reasons.append(
-            "Adult family profile → long-term heart maintenance considered"
-        )
-
-    # Final safety net (rare now)
-    if not reasons:
-        reasons.append(
-            "Overall family cooking pattern best aligns with this oil blend"
-        )
-
-    return reasons[:2]
-
-
 
 # =====================================================
 # GRADIO UI
@@ -188,26 +212,32 @@ with gr.Blocks() as demo:
         choices=list(X_encoders["FamilySize"].classes_),
         label="Family Size"
     )
+
     age_mix = gr.Dropdown(
         choices=list(X_encoders["AgeMix"].classes_),
         label="Age Mix"
     )
+
     cardio_history = gr.Dropdown(
         choices=list(X_encoders["CardioHistory"].classes_),
         label="Cardio History"
     )
+
     cooking_temp = gr.Dropdown(
         choices=list(X_encoders["CookingTemp"].classes_),
         label="Cooking Temperature"
     )
+
     BMI = gr.Dropdown(
         choices=list(X_encoders["BMI"].classes_),
         label="BMI"
     )
+
     gut_wellness = gr.Dropdown(
         choices=list(X_encoders["GutWellness"].classes_),
         label="Gut Wellness"
     )
+
     usage = gr.Dropdown(
         choices=list(X_encoders["Usage"].classes_),
         label="Usage"
@@ -215,7 +245,7 @@ with gr.Blocks() as demo:
 
     output = gr.Textbox(
         label="Recommended Oil Blend",
-        lines=4
+        lines=12
     )
 
     gr.Button("Recommend").click(
@@ -233,12 +263,12 @@ with gr.Blocks() as demo:
     )
 
 # =====================================================
-# LAUNCH (MANDATORY FOR HF SPACES)
+# LAUNCH FOR HUGGING FACE SPACES
 # =====================================================
 
 if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        show_error=True  # ensures errors are visible to user
+        show_error=True
     )
