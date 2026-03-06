@@ -158,8 +158,18 @@ def predict_oil_blend_ui(
         # --------------------------------------------
         pred = model.predict(X)[0]
 
+    
         probs = model.predict_proba(X)[0]
-        confidence = round(max(probs) * 100, 1)
+
+    # sort probabilities
+        sorted_probs = sorted(probs, reverse=True)
+
+        top1 = sorted_probs[0]
+        top2 = sorted_probs[1]
+
+        normalized_confidence = top1 / (top1 + top2)
+
+        confidence = round(normalized_confidence * 100, 1)
 
         blend_name = y_encoder.inverse_transform([pred])[0]
 
