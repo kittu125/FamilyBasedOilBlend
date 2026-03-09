@@ -9,8 +9,6 @@ COMPOSITION:
 - Sesame: 10%
 - Coconut: 5%
 
-![generated-image-1](https://cdn-uploads.huggingface.co/production/uploads/686f81faff19ed69d03860a8/C8ohjQ6ZBbcJN1Wx2HS1m.png)
-
 PROFILE:
 Neutral taste blend designed for Adults, nuclear families, and kids.
 Balanced for everyday cooking with mild flavor and moderate heat stability.
